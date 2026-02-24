@@ -1,0 +1,57 @@
+name: Update cask on new release
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest release and update cask
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/onemorepereira/training-app/releases/latest | jq -r '.tag_name')
+          VERSION="${LATEST#v}"
+
+          CURRENT=$(grep '^  version ' Casks/training-app.rb | sed 's/.*"\(.*\)"/\1/')
+
+          if [ "$VERSION" = "$CURRENT" ]; then
+            echo "Already up to date ($VERSION)"
+            exit 0
+          fi
+
+          echo "Updating from $CURRENT to $VERSION"
+
+          DMG_URL="https://github.com/onemorepereira/training-app/releases/download/v${VERSION}/training-app_${VERSION}_aarch64.dmg"
+          curl -sL "$DMG_URL" -o training-app.dmg
+          SHA256=$(shasum -a 256 training-app.dmg | awk '{print $1}')
+
+          cat > Casks/training-app.rb << 'RUBY'
+          cask "training-app" do
+            version "VERSION_PLACEHOLDER"
+            sha256 "SHA256_PLACEHOLDER"
+
+            url "https://github.com/onemorepereira/training-app/releases/download/v#{version}/training-app_#{version}_aarch64.dmg"
+            name "Training App"
+            desc "A cycling training application"
+            homepage "https://github.com/onemorepereira/training-app"
+
+            app "training-app.app"
+          end
+          RUBY
+
+          sed -i 's/^          //' Casks/training-app.rb
+          sed -i "s/VERSION_PLACEHOLDER/$VERSION/" Casks/training-app.rb
+          sed -i "s/SHA256_PLACEHOLDER/$SHA256/" Casks/training-app.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/training-app.rb
+          git commit -m "Update training-app to ${VERSION}"
+          git push
