@@ -13,4 +13,10 @@ cask "training-app" do
     system_command "/usr/bin/xattr",
                    args: ["-cr", "#{appdir}/training-app.app"]
   end
+
+  caveats <<~EOS
+    training-app is not signed with an Apple Developer certificate.
+    If macOS blocks the app, reinstall with:
+      brew reinstall --cask --no-quarantine training-app
+  EOS
 end
