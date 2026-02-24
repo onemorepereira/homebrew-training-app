@@ -8,4 +8,9 @@ cask "training-app" do
   homepage "https://github.com/onemorepereira/training-app"
 
   app "training-app.app"
+
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-cr", "#{appdir}/training-app.app"]
+  end
 end
