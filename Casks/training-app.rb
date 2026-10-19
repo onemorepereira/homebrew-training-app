@@ -1,6 +1,6 @@
 cask "training-app" do
-  version "0.8.0-beta"
-  sha256 "81ce603eb9473184a86239c46f79302eeff90fdbbbf89363dd0a2b589abd0f59"
+  version "0.9.0-beta"
+  sha256 "c6f63ec8767b04b74edde4e4e42fa1ab34c427108104d766e0f5865b74400229"
 
   url "https://github.com/onemorepereira/training-app/releases/download/v#{version}/training-app_#{version}_aarch64.dmg"
   name "Training App"
